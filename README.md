@@ -110,3 +110,7 @@ Shared hosting limits threads per account while the server has 64 cores, so `.en
 
 Update the code: `rsync -az --exclude-from=.rsyncignore --exclude data/ ./ trida:lab.trida.id/app/`,
 then restart: `ssh trida 'pkill -f "[u]vicorn app.main:app"; sleep 2; ~/lab.trida.id/app/deploy/keepalive.sh'`.
+
+## Lisensi
+
+MIT, lihat [LICENSE](LICENSE). Bebas dipakai, diubah, dan disebarkan oleh siapa pun.
