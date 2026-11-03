@@ -87,7 +87,7 @@ Optional fields: `abstract`, `faculty`, `source` (`repository` / `internal`), `l
 | Startup (index build) | ~20 s |
 | One check | ~30 ms |
 
-## Deployment: https://lab.trida.id (hosting.com shared server)
+## Beta Testing Deployment: https://lab.trida.id (hosting.com shared server)
 
 The app lives in `~/lab.trida.id/app` on the server (SSH host alias `trida`).
 
