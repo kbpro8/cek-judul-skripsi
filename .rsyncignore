@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+data/*.log
+data/*.sqlite3-wal
+data/*.sqlite3-shm
+.env.admin
+.env.production
+.DS_Store
+.htaccess.app

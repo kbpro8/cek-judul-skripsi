@@ -1,0 +1,58 @@
+<form method="post" action="/cek" data-check>
+  <div class="field">
+    <label for="title">Judul proposal skripsi <span class="word-count" id="wc-{{ form_id|default('a') }}">minimal 3 kata</span></label>
+    <input class="input title-input" type="text" id="title" name="title" required minlength="10"
+           value="{{ form.title or '' }}" data-words="wc-{{ form_id|default('a') }}" autocomplete="off"
+           placeholder="mis. Partisipasi Politik Perempuan dalam Pilkada Aceh Barat Daya 2024">
+  </div>
+
+  <div class="grid-2">
+    <div class="field">
+      <label for="abstract">Ringkasan / latar belakang <span class="hint">opsional · lebih akurat</span></label>
+      <textarea class="input" id="abstract" name="abstract" placeholder="1–3 paragraf: masalah, lokasi, teori, dan pendekatan penelitian.">{{ form.abstract or '' }}</textarea>
+    </div>
+    <div>
+      <div class="field">
+        <label for="keywords">Kata kunci <span class="hint">opsional</span></label>
+        <input class="input" type="text" id="keywords" name="keywords" value="{{ form.keywords or '' }}" placeholder="partisipasi politik, perempuan, pilkada">
+      </div>
+      <div class="filters">
+        <div class="filters-title">Cakupan pembanding</div>
+        <div class="field">
+          <label for="faculty" class="sr-only">Fakultas</label>
+          <select class="input" id="faculty" name="faculty">
+            <option value="">Semua fakultas</option>
+            {% for f in faculties %}<option value="{{ f }}" {% if form.faculty == f %}selected{% endif %}>{{ f }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="grid-2" style="gap:10px">
+          <div class="field">
+            <label for="source" class="sr-only">Sumber data</label>
+            <select class="input" id="source" name="source">
+              <option value="">Repository + internal</option>
+              <option value="repository" {% if form.source == 'repository' %}selected{% endif %}>Repository UIN</option>
+              <option value="internal" {% if form.source == 'internal' %}selected{% endif %}>Data internal</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="level" class="sr-only">Jenjang</label>
+            <select class="input" id="level" name="level">
+              <option value="">Semua jenjang</option>
+              {% for l in levels %}<option value="{{ l }}" {% if form.level == l %}selected{% endif %}>{{ l }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button type="submit" class="btn">Cek kemiripan
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 10h11M11 5l5 5-5 5"/></svg>
+    </button>
+    <span class="privacy">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="4" y="9" width="12" height="8" rx="2"/><path d="M7 9V6.5a3 3 0 016 0V9"/></svg>
+      Judul yang dicek tidak dipublikasikan; hanya terlihat oleh admin lab.
+    </span>
+  </div>
+</form>

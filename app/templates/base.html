@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Cek Judul Skripsi{% endblock %} · FISIP UIN Ar-Raniry</title>
+  <meta name="description" content="Cek kemiripan judul proposal skripsi dengan karya ilmiah di Repository UIN Ar-Raniry Banda Aceh.">
+  <meta name="theme-color" content="#062a1c">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%230d5c3d'/%3E%3Cpath d='M20 7l3.8 9.2L33 20l-9.2 3.8L20 33l-3.8-9.2L7 20l9.2-3.8z' fill='%23f1cf7a'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css?v=4">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap">
+      <a class="logo" href="/">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f1cf7a"/><stop offset="1" stop-color="#d6a740"/></linearGradient></defs>
+          <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.18)"/>
+          <path d="M20 6l4 9.9L34 20l-10 4.1L20 34l-4-9.9L6 20l10-4.1z" fill="url(#lg)"/>
+          <rect x="13.5" y="13.5" width="13" height="13" transform="rotate(45 20 20)" fill="none" stroke="#062a1c" stroke-width="1.6"/>
+          <circle cx="20" cy="20" r="2.6" fill="#062a1c"/>
+        </svg>
+        <span><b>Cek Judul Skripsi</b><small>Lab FISIP · UIN Ar-Raniry Banda Aceh</small></span>
+      </a>
+      <nav class="nav">
+        <a href="/" class="{% block nav_home %}{% endblock %}">Cek Judul</a>
+        <a href="/#cara-kerja" class="opt">Cara Kerja</a>
+        <a href="/admin" class="{% block nav_admin %}{% endblock %}">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  {% block content %}{% endblock %}
+
+  <footer class="footer">
+    <div class="wrap">
+      <span>© Lab FISIP UIN Ar-Raniry Banda Aceh · Data: <a href="https://repository.ar-raniry.ac.id" target="_blank" rel="noopener">Repository UIN Ar-Raniry</a></span>
+      <span>Skor kemiripan adalah alat bantu. Keputusan akhir ada pada pembimbing dan Kaprodi.</span>
+    </div>
+  </footer>
+
+  <div class="loading" role="status" aria-live="polite"
+       data-steps='["Membersihkan dan menstem kata…","Mencocokkan kata kunci…","Membaca makna judul…","Mengurutkan judul paling mirip…"]'>
+    <div>
+      <div class="orbit" aria-hidden="true"><i></i><i></i><i></i><span class="core"></span></div>
+      <h3>Membandingkan judul Anda</h3>
+      <p>dengan {{ total|num }} karya ilmiah</p>
+    </div>
+  </div>
+  <script src="/static/app.js?v=6" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block nav_home %}active{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow"><span class="dot"></span>Lab FISIP · UIN Ar-Raniry</span>
+      <h1>Pastikan judul skripsi Anda <em>benar-benar baru.</em></h1>
+      <p class="sub">Bandingkan judul proposal dengan seluruh skripsi, tesis, dan disertasi di Repository UIN Ar-Raniry
+        dari semua fakultas, plus arsip internal fakultas, dalam hitungan detik.</p>
+      <div class="hero-stats">
+        <div><b data-count="{{ total }}">{{ total|num }}</b><span>karya ilmiah</span></div>
+        <div><b data-count="{{ programs }}">{{ programs }}</b><span>program studi</span></div>
+        <div><b data-count="{{ by_faculty|length }}">{{ by_faculty|length }}</b><span>fakultas & pascasarjana</span></div>
+      </div>
+    </div>
+
+    <div class="globe-stage" aria-hidden="true">
+      <div class="globe-halo"></div>
+      <canvas id="globe" data-weights="{{ by_faculty|map(attribute='n')|join(',') }}"></canvas>
+      <div class="float-card fc-1">
+        <span class="pct">87%</span>
+        <div class="k">Repository · 2023</div>
+        <div class="t">Peran Partai Lokal dalam Pendidikan Politik…</div>
+        <div class="lines"><i></i><i></i><i></i></div>
+      </div>
+      <div class="float-card fc-2">
+        <span class="pct">42%</span>
+        <div class="k">Internal · 2025</div>
+        <div class="t">Dinamika Pemilihan Keuchik di Pidie Jaya</div>
+        <div class="lines"><i></i><i></i></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="panel" id="cek">
+    <div class="panel-head">
+      <div>
+        <h2>Cek judul proposal</h2>
+        <p>Isi judul. Ringkasan dan kata kunci membantu sistem memahami topik Anda.</p>
+      </div>
+    </div>
+    {% if error %}<div class="notice err">{{ error }}</div>{% endif %}
+    {% if state.building %}
+    <div class="notice info"><span class="spin"></span><span>Indeks sedang diperbarui ({{ state.message or "menyiapkan" }}). Pengecekan bisa dilakukan setelah proses ini selesai.</span></div>
+    {% elif not total %}
+    <div class="notice err">Belum ada data pembanding. Admin perlu menjalankan harvest repository atau mengunggah data internal.</div>
+    {% endif %}
+    {% include "_form.html" %}
+  </div>
+
+  <section class="section" id="cara-kerja">
+    <div class="section-head">
+      <span class="kicker">Cara kerja</span>
+      <h2>Bukan sekadar mencocokkan kata.</h2>
+      <p>Sistem membaca judul Anda dua kali: sekali sebagai kumpulan kata, sekali sebagai makna. Topik yang sama dengan kata berbeda tetap ketahuan.</p>
+    </div>
+    <div class="steps">
+      <div class="step" data-tilt="5">
+        <div class="step-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h11l5 5v15H6z"/><path d="M17 4v5h5M10 14h8M10 18h6"/></svg></div>
+        <h3>Tulis judul & ringkasan</h3>
+        <p>Teks dibersihkan, kata umum seperti "analisis" atau "studi kasus" dibuang, lalu setiap kata dikembalikan ke kata dasarnya.</p>
+      </div>
+      <div class="step" data-tilt="5">
+        <div class="step-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="14" cy="14" r="9"/><path d="M5 14h18M14 5c3 3 3 15 0 18M14 5c-3 3-3 15 0 18"/></svg></div>
+        <h3>Dibandingkan dua cara</h3>
+        <p><b>Kata:</b> kecocokan kata dasar dan potongan huruf. <b>Makna:</b> model bahasa multibahasa yang tahu "wanita" ≈ "perempuan".</p>
+      </div>
+      <div class="step" data-tilt="5">
+        <div class="step-icon"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 22V12M11 22V6M17 22v-8M23 22V9"/></svg></div>
+        <h3>Baca 10 judul terdekat</h3>
+        <p>Lihat skor, kata yang sama disorot, dan tautan ke naskah di repository. Gunakan sebagai bahan diskusi dengan pembimbing.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="kicker">Membaca skor</span>
+      <h2>Tiga zona, satu keputusan bersama pembimbing.</h2>
+    </div>
+    <div class="scale">
+      <div class="aman"><div class="band"></div><span class="range">&lt; {{ config.THRESHOLD_REVIEW }}%</span><b>Aman</b><p>Topik tampak baru. Tetap baca judul terdekat untuk kajian pustaka.</p></div>
+      <div class="tinjau"><div class="band"></div><span class="range">{{ config.THRESHOLD_REVIEW }}–{{ config.THRESHOLD_HIGH }}%</span><b>Perlu ditinjau</b><p>Tema mirip. Jelaskan pembeda: lokasi, waktu, teori, metode, atau fokus.</p></div>
+      <div class="tinggi"><div class="band"></div><span class="range">≥ {{ config.THRESHOLD_HIGH }}%</span><b>Sangat mirip</b><p>Kemungkinan duplikat. Revisi judul atau fokus penelitian, lalu cek ulang.</p></div>
+    </div>
+  </section>
+
+  <section class="section coverage">
+    <div>
+      <span class="kicker">Cakupan data</span>
+      <div class="big-number" data-count="{{ total }}">{{ total|num }}</div>
+      <h2 style="margin-top:12px">karya ilmiah dari seluruh fakultas.</h2>
+      <p class="muted">Dipanen dari Repository UIN Ar-Raniry dan diperbarui berkala, ditambah arsip judul internal yang diunggah fakultas.</p>
+    </div>
+    <div class="fac-bars">
+      {% set maxn = by_faculty[0].n if by_faculty else 1 %}
+      {% for f in by_faculty %}
+      <div class="fac-bar f{{ fac_color[f.faculty] }}">
+        <span class="name">{{ f.faculty|replace("Fakultas ", "") }}</span><span class="n">{{ f.n|num }}</span>
+        <div class="track"><div class="fill" style="--w: {{ (f.n / maxn * 100)|round(1) }}%"></div></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+</main>
+{% endblock %}
+{% block scripts %}<script src="/static/globe.js?v=2" defer></script>{% endblock %}

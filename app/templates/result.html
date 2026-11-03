@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block title %}Hasil cek{% endblock %}
+{% block content %}
+{% set labels = {"aman": "Aman", "tinjau": "Perlu ditinjau", "tinggi": "Sangat mirip"} %}
+{% set headline = {
+  "aman": "Topik Anda tampak baru.",
+  "tinjau": "Ada penelitian dengan tema serupa.",
+  "tinggi": "Ada judul yang sangat mirip."
+} %}
+{% set advice = {
+  "aman": "Tidak ditemukan judul yang sangat mirip. Tetap baca beberapa judul terdekat di bawah sebagai bahan kajian pustaka.",
+  "tinjau": "Baca judul-judul di bawah, lalu jelaskan kepada pembimbing apa yang membedakan penelitian Anda: lokasi, waktu, teori, metode, atau fokus masalah.",
+  "tinggi": "Sebaiknya revisi judul atau fokus penelitian, lalu cek ulang. Diskusikan judul-judul di bawah dengan pembimbing."
+} %}
+
+<section class="hero result-hero">
+  <div class="wrap verdict-grid verdict">
+    {% set pct = [[top_score, 0]|max, 100]|min %}
+    <div class="ring {{ status }}" role="img" aria-label="Skor kemiripan tertinggi {{ '%.0f'|format(top_score) }} persen">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <circle class="track" cx="100" cy="100" r="88" fill="none" stroke-width="12"/>
+        <circle class="bar" cx="100" cy="100" r="88" fill="none" stroke-width="12"
+                pathLength="100" stroke-dasharray="100" stroke-dashoffset="{{ 100 - pct }}"/>
+      </svg>
+      <div class="value"><b>{{ "%.0f"|format(top_score) }}<small style="font-size:.45em">%</small></b><span>kemiripan</span></div>
+    </div>
+    <div class="tone {{ status }}">
+      <span class="status-pill"><i></i>{{ labels[status] }}</span>
+      <h1>{{ headline[status] }}</h1>
+      <p class="advice">{{ advice[status] }}</p>
+      <div class="proposal">Judul Anda: <q>{{ form.title }}</q></div>
+      <div class="meter" aria-hidden="true">
+        <div class="meter-bar">
+          <span style="width: {{ config.THRESHOLD_REVIEW }}%"></span>
+          <span style="width: {{ config.THRESHOLD_HIGH - config.THRESHOLD_REVIEW }}%"></span>
+          <span style="width: {{ 100 - config.THRESHOLD_HIGH }}%"></span>
+        </div>
+        <div class="meter-pin" style="left: {{ pct }}%"></div>
+        <div class="meter-labels"><span>0</span><span>{{ config.THRESHOLD_REVIEW }}</span><span>{{ config.THRESHOLD_HIGH }}</span><span>100</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="panel results-panel">
+    <div class="toolbar">
+      <div>
+        <h2 style="font-family:var(--display);font-weight:600;font-size:1.5rem;margin:0">{{ results|length }} judul paling mirip</h2>
+        <p class="muted" style="margin:4px 0 0">dari {{ total|num }} karya{% if not semantic %} · mode kata saja (model makna tidak aktif){% endif %}</p>
+      </div>
+      <div class="chips">
+        <span class="chip">{{ form.faculty or "Semua fakultas" }}</span>
+        <span class="chip">{{ {"repository": "Repository UIN", "internal": "Data internal"}.get(form.source, "Repository + internal") }}</span>
+        <span class="chip">{{ form.level or "Semua jenjang" }}</span>
+      </div>
+    </div>
+
+    {% for r in results %}
+    <article class="match" style="animation-delay: {{ loop.index0 * 70 }}ms">
+      <div class="rank">{{ loop.index }}</div>
+      <div>
+        <div class="t">{% for w, hit in r.title_parts %}{% if hit %}<mark>{{ w }}</mark>{% else %}{{ w }}{% endif %} {% endfor %}</div>
+        <div class="meta">
+          <span class="src {% if r.source == 'internal' %}internal{% endif %}">{{ "Repository" if r.source == "repository" else "Internal" }}</span>
+          <span>{{ r.author or "Penulis tidak tercatat" }}{% if r.nim %} · {{ r.nim }}{% endif %}</span>
+          <span>{{ r.year or "tahun ?" }}</span>
+          {% if r.faculty %}<span class="fac f{{ fac_color.get(r.faculty, 9) }}"><i></i>{{ r.program_name or "" }}{% if r.program_name %}, {% endif %}{{ r.faculty|replace("Fakultas ", "F. ") }}</span>{% endif %}
+          {% if r.url %}<a class="link-out" href="{{ r.url }}" target="_blank" rel="noopener">Buka naskah ↗</a>{% endif %}
+        </div>
+        <div class="bars">
+          {% for label, val in [("Judul", r.title_score), ("Isi", r.content_score), ("Kata", r.lexical), ("Makna", r.semantic)] if val is not none %}
+          <div class="mini"><div><span>{{ label }}</span><b>{{ "%.0f"|format(val) }}%</b></div><div class="track"><span style="width: {{ [val, 100]|min }}%"></span></div></div>
+          {% endfor %}
+        </div>
+        {% if r.abstract %}
+        <details><summary>Lihat abstrak</summary><p>{{ r.abstract[:1400] }}{% if r.abstract|length > 1400 %}…{% endif %}</p></details>
+        {% endif %}
+      </div>
+      <div class="score-badge {{ r.status }}" data-tilt="10"><b>{{ "%.0f"|format(r.score) }}%</b><small>{{ labels[r.status] }}</small></div>
+    </article>
+    {% else %}
+    <p class="muted">Tidak ada data untuk filter ini. Coba perluas cakupan pembanding.</p>
+    {% endfor %}
+  </div>
+
+  <section class="section" id="cek">
+    <div class="panel" style="margin-top:0">
+      <div class="panel-head"><div><h2>Cek ulang</h2><p>Revisi judul atau tambahkan ringkasan, lalu bandingkan lagi.</p></div></div>
+      {% set form_id = "b" %}
+      {% include "_form.html" %}
+    </div>
+  </section>
+</main>
+{% endblock %}

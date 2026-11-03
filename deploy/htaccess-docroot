@@ -1,0 +1,5 @@
+# lab.trida.id -> Cek Judul Skripsi app (uvicorn on 127.0.0.1:5061, started by deploy/keepalive.sh)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+RewriteRule ^(.*)$ http://127.0.0.1:5061/$1 [P,L]

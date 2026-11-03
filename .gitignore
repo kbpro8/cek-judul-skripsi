@@ -1,0 +1,13 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets: admin password and server settings
+.env.*
+!.env.example
+
+# Harvested theses, embeddings, student checks and logs (rebuilt with `python -m app.harvest`)
+data/
+
+.DS_Store

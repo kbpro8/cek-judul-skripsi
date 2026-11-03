@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block nav_admin %}active{% endblock %}
+{% block content %}
+<section class="hero admin-hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span>Panel admin lab</span>
+    <h1>Data pembanding skripsi</h1>
+    <p>Harvest dari Repository UIN Ar-Raniry, unggah arsip internal fakultas, dan pantau pengecekan.</p>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="panel" style="padding:0;background:transparent;border:0;box-shadow:none">
+    {% if default_password %}<div class="notice err">Password admin masih bawaan. Atur variabel lingkungan <code>ADMIN_PASSWORD</code> sebelum dipakai di server.</div>{% endif %}
+    {% if msg %}<div class="notice ok">{{ msg }}</div>{% endif %}
+    {% if err %}<div class="notice err">{{ err }}</div>{% endif %}
+    <div id="live" class="notice info" {% if not (progress.running or state.building) %}hidden{% endif %}>
+      <span class="spin"></span>
+      <span id="live-text">
+        {% if progress.running %}Harvest berjalan: {{ progress.done }}/{{ progress.total }} prodi · {{ progress.current }} · {{ progress.records }} record.{% endif %}
+        {% if state.building %} Indeks: {{ state.message }}{% endif %}
+      </span>
+    </div>
+
+    <div class="tiles">
+      <div class="tile"><div class="lbl">Repository UIN</div><div class="num" data-count="{{ totals.repo or 0 }}">{{ (totals.repo or 0)|num }}</div><div class="sub">skripsi, tesis, disertasi</div></div>
+      <div class="tile"><div class="lbl">Data internal</div><div class="num" data-count="{{ totals.internal or 0 }}">{{ (totals.internal or 0)|num }}</div><div class="sub">dari {{ batches|length }} batch unggahan</div></div>
+      <div class="tile"><div class="lbl">Pengecekan</div><div class="num" data-count="{{ check_stats.n or 0 }}">{{ (check_stats.n or 0)|num }}</div><div class="sub">{{ check_stats.today or 0 }} hari ini</div></div>
+      <div class="tile"><div class="lbl">Sangat mirip / ditinjau</div><div class="num">{{ check_stats.tinggi or 0 }} <span style="color:var(--muted);font-size:.6em">/ {{ check_stats.tinjau or 0 }}</span></div><div class="sub">dari semua pengecekan</div></div>
+    </div>
+  </div>
+
+  <div class="admin-grid">
+    <div class="card">
+      <h2>Unggah arsip internal fakultas</h2>
+      <p class="desc">Excel (.xlsx) atau CSV. Kolom wajib <b>judul</b>; opsional: abstrak, penulis, nim, tahun, prodi, fakultas, jenjang, url.
+        NIM atau judul yang sama akan diperbarui, bukan diduplikasi.</p>
+      <form method="post" action="/admin/upload" enctype="multipart/form-data">
+        <label class="dropzone" style="position:relative">
+          <input type="file" name="file" accept=".xlsx,.csv" required>
+          <svg viewBox="0 0 36 36" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 24V8M11 15l7-7 7 7"/><path d="M6 24v4h24v-4"/></svg>
+          <b data-file>Tarik file ke sini atau klik untuk memilih</b>
+          <span>.xlsx atau .csv</span>
+        </label>
+        <div class="grid-2" style="margin-top:16px;gap:12px">
+          <div class="field"><label for="batch_name">Nama batch</label><input class="input" type="text" id="batch_name" name="batch_name" placeholder="Judul disetujui Ilmu Politik 2025"></div>
+          <div class="field"><label for="program">Prodi bawaan</label><input class="input" type="text" id="program" name="program" placeholder="S1 Ilmu Politik"></div>
+        </div>
+        <div class="field"><label for="faculty">Fakultas bawaan <span class="hint">jika kolom fakultas kosong</span></label>
+          <input class="input" type="text" id="faculty" name="faculty" list="faculties" value="Fakultas Ilmu Sosial dan Ilmu Pemerintahan">
+          <datalist id="faculties">{% for f in faculties %}<option value="{{ f }}">{% endfor %}</datalist></div>
+        <div class="btn-row">
+          <button type="submit" class="btn small">Unggah & impor</button>
+          <a class="btn ghost small" href="/admin/template.xlsx">Unduh templat Excel</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Repository & indeks</h2>
+      <p class="desc">Indeks terakhir dibangun: <b>{{ state.built_at|localtime or "belum" }}</b>. Harvest mengambil ulang semua prodi (±30 menit).</p>
+      <div class="btn-row" style="margin-top:0;margin-bottom:18px">
+        <form method="post" action="/admin/harvest"><button type="submit" class="btn small">Harvest ulang repository</button></form>
+        <form method="post" action="/admin/reindex"><button type="submit" class="btn ghost small">Bangun ulang indeks</button></form>
+      </div>
+      {% if runs %}
+      <div class="table-scroll"><table>
+        <tr><th>Mulai</th><th>Status</th><th class="num">Record</th></tr>
+        {% for r in runs %}
+        <tr><td>{{ r.started_at|localtime }}</td><td><span class="badge {{ r.status }}">{{ r.status }}</span>{% if r.message %}<div class="muted">{{ r.message[:160] }}</div>{% endif %}</td><td class="num">{{ r.records|num }}</td></tr>
+        {% endfor %}
+      </table></div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:20px">
+    <h2>Batch unggahan</h2>
+    <p class="desc">Menghapus batch akan menghapus semua judul di dalamnya dari pembanding.</p>
+    {% if batches %}
+    <div class="table-scroll"><table>
+      <tr><th>Nama</th><th>File</th><th>Fakultas</th><th class="num">Judul</th><th>Diunggah</th><th></th></tr>
+      {% for b in batches %}
+      <tr><td><b>{{ b.name }}</b></td><td class="muted">{{ b.filename }}</td><td>{{ b.faculty or "—" }}</td><td class="num">{{ b.row_count }}</td><td>{{ b.uploaded_at|localtime }}</td>
+        <td class="num"><form method="post" action="/admin/batches/{{ b.id }}/delete" onsubmit="return confirm('Hapus batch ini beserta semua judulnya?')"><button class="btn danger">Hapus</button></form></td></tr>
+      {% endfor %}
+    </table></div>
+    {% else %}<p class="muted">Belum ada unggahan.</p>{% endif %}
+  </div>
+
+  <div class="admin-grid">
+    <div class="card">
+      <h2>Data per fakultas</h2>
+      <p class="desc">Repository + internal.</p>
+      <div class="fac-bars">
+        {% set maxn = fac_rows[0].n if fac_rows else 1 %}
+        {% for f in fac_rows %}
+        <div class="fac-bar f{{ fac_color.get(f.faculty, 9) }}">
+          <span class="name">{{ f.faculty|replace("Fakultas ", "") }}</span>
+          <span class="n">{{ f.repo|num }}{% if f.internal %} <span class="muted">+{{ f.internal }}</span>{% endif %}</span>
+          <div class="track"><div class="fill" style="--w: {{ (f.n / maxn * 100)|round(1) }}%"></div></div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <h2>Pengecekan terakhir</h2>
+      <p class="desc">20 judul terakhir yang dicek mahasiswa.</p>
+      {% if checks %}
+      <div class="table-scroll"><table>
+        <tr><th>Waktu</th><th>Judul</th><th class="num">Skor</th></tr>
+        {% for c in checks %}<tr><td class="muted" style="white-space:nowrap">{{ c.created_at|localtime }}</td><td>{{ c.title }}</td>
+          <td class="num"><span class="badge {{ {'tinggi':'failed','tinjau':'running','aman':'done'}[c.status] }}">{{ "%.0f"|format(c.top_score or 0) }}%</span></td></tr>{% endfor %}
+      </table></div>
+      {% else %}<p class="muted">Belum ada pengecekan.</p>{% endif %}
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Refresh when a running harvest or index build finishes.
+  (function poll() {
+    const live = document.getElementById('live');
+    if (live.hidden) return;
+    setTimeout(async () => {
+      try {
+        const s = await (await fetch('/admin/status')).json();
+        if (!s.harvest.running && !s.index_building) return location.replace('/admin');
+        document.getElementById('live-text').textContent =
+          (s.harvest.running ? `Harvest berjalan: ${s.harvest.done}/${s.harvest.total} prodi · ${s.harvest.current} · ${s.harvest.records} record. ` : '')
+          + (s.index_building ? `Indeks: ${s.index_message}` : '');
+      } catch (e) {}
+      poll();
+    }, 3000);
+  })();
+</script>
+{% endblock %}
