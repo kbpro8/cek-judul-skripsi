@@ -87,26 +87,7 @@ Optional fields: `abstract`, `faculty`, `source` (`repository` / `internal`), `l
 | Startup (index build) | ~20 s |
 | One check | ~30 ms |
 
-## Beta Testing Deployment: https://lab.trida.id (hosting.com shared server)
 
-The app lives in `~/lab.trida.id/app` on the server (SSH host alias `trida`).
-
-| Piece | Where |
-|---|---|
-| Python environment | `~/lab.trida.id/app/.venv` (Python 3.11) |
-| Settings (admin login, thread limits) | `~/lab.trida.id/app/.env.production` (chmod 600) |
-| Web process | `deploy/start.sh` → uvicorn on `127.0.0.1:5061` |
-| Domain → app | `~/lab.trida.id/.htaccess` (copy of `deploy/htaccess-docroot`): HTTPS redirect + proxy |
-| Restart if down | `deploy/keepalive.sh` (meant for cron every 5 minutes) |
-| Weekly harvest | `deploy/harvest.sh` (harvest + index, then restarts the web process) |
-| Logs | `data/app.log`, `data/keepalive.log`, `data/harvest.log` |
-
-Why not cPanel "Setup Python App": LiteSpeed's `lswsgi` launcher is missing for Python 3.11 on
-this server, and short-lived worker processes would rebuild the 29k-record index on every cold start.
-
-Shared hosting limits threads per account while the server has 64 cores, so `.env.production` sets
-`OPENBLAS_NUM_THREADS=1`, `RAYON_NUM_THREADS=1`, `TOKENIZERS_PARALLELISM=false`, `HF_HUB_DISABLE_XET=1`,
-`ORT_THREADS=2` and `STEM_WORKERS=2`; without them `import numpy` and the model download fail.
 
 Update the code: `rsync -az --exclude-from=.rsyncignore --exclude data/ ./ trida:lab.trida.id/app/`,
 then restart: `ssh trida 'pkill -f "[u]vicorn app.main:app"; sleep 2; ~/lab.trida.id/app/deploy/keepalive.sh'`.
